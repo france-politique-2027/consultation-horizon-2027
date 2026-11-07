@@ -611,6 +611,7 @@ Participation volontaire – Aucune affiliation officielle à l'État.
 </footer>
 
 
+
 <script type="module">
 import { createClient } from
 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -623,13 +624,13 @@ const db = createClient(
 const form = document.getElementById('consultationForm');
 const result = document.getElementById('result');
 const CLE_VOTE = 'horizon2027_vote_en_attente';
-
 const bouton = form.querySelector('button[type="submit"]');
+
+let enregistrementEnCours = false;
 
 // Création du champ e-mail
 const zoneEmail = document.createElement('div');
 zoneEmail.style.margin = '20px 0';
-
 zoneEmail.innerHTML = `
   <label for="emailVote">
     Votre adresse e-mail pour confirmer votre participation
@@ -644,28 +645,64 @@ zoneEmail.innerHTML = `
 `;
 
 form.insertBefore(zoneEmail, bouton);
-
 const emailInput = document.getElementById('emailVote');
 
-// Affichage des messages
 function afficherMessage(message) {
   result.style.display = 'block';
   result.textContent = message;
 }
 
-// Enregistrement après le clic sur le lien magique
-async function enregistrerVote() {
+// Restaurer les réponses dans le questionnaire
+function restaurerReponses(reponses) {
+  for (const [nom, valeur] of Object.entries(reponses)) {
+    const champ = form.elements.namedItem(nom);
+
+    if (!champ) continue;
+
+    if (champ instanceof RadioNodeList) {
+      for (const radio of champ) {
+        radio.checked = radio.value === valeur;
+      }
+    } else {
+      champ.value = valeur;
+    }
+  }
+}
+
+// Récupérer les réponses sauvegardées
+function recupererSauvegarde() {
   const sauvegarde = localStorage.getItem(CLE_VOTE);
 
-  if (!sauvegarde) return;
+  if (!sauvegarde) return null;
 
-  const contenu = JSON.parse(sauvegarde);
+  try {
+    const contenu = JSON.parse(sauvegarde);
 
-  // Les réponses expirent après 30 minutes
-  if (Date.now() - contenu.date > 30 * 60 * 1000) {
+    if (
+      !contenu.date ||
+      !contenu.reponses ||
+      Date.now() - contenu.date > 30 * 60 * 1000
+    ) {
+      localStorage.removeItem(CLE_VOTE);
+      return null;
+    }
+
+    return contenu;
+  } catch {
     localStorage.removeItem(CLE_VOTE);
+    return null;
+  }
+}
+
+// Enregistrer les réponses après connexion
+async function enregistrerVote() {
+  if (enregistrementEnCours) return;
+
+  const contenu = recupererSauvegarde();
+
+  if (!contenu) {
     afficherMessage(
-      'Votre demande a expiré. Merci de remplir à nouveau le questionnaire.'
+      'Aucune réponse en attente n’a été retrouvée dans ce navigateur. Il faut recommencer le questionnaire.'
     );
     return;
   }
@@ -674,66 +711,85 @@ async function enregistrerVote() {
     await db.auth.getSession();
 
   if (sessionError) throw sessionError;
-
   if (!session) return;
 
+  enregistrementEnCours = true;
   bouton.disabled = true;
   bouton.textContent = 'Enregistrement des réponses...';
 
-  const { data, error } = await db.rpc(
-    'enregistrer_participation',
-    { p_reponses: contenu.reponses }
-  );
-
-  if (error) throw error;
-
-  localStorage.removeItem(CLE_VOTE);
-
-  if (!data.success) {
-    afficherMessage(
-      'Vous avez déjà participé à cette consultation avec ce compte.'
+  try {
+    const { data, error } = await db.rpc(
+      'enregistrer_participation',
+      { p_reponses: contenu.reponses }
     );
-    bouton.textContent = 'Participation déjà enregistrée';
-    return;
+
+    if (error) throw error;
+
+    localStorage.removeItem(CLE_VOTE);
+
+    if (!data || data.success !== true) {
+      afficherMessage(
+        'Vous avez déjà participé à cette consultation avec ce compte.'
+      );
+      bouton.textContent = 'Participation déjà enregistrée';
+      return;
+    }
+
+    afficherMessage(
+      'Merci ! Votre participation a bien été enregistrée.'
+    );
+
+    // On conserve les réponses visibles dans le formulaire.
+    bouton.textContent = 'Participation enregistrée';
+
+  } catch (error) {
+    console.error(error);
+    afficherMessage(
+      'Erreur lors de l’enregistrement : ' + error.message
+    );
+    bouton.disabled = false;
+    bouton.textContent = 'Réessayer l’enregistrement';
+  } finally {
+    enregistrementEnCours = false;
   }
-
-  afficherMessage(
-    'Merci ! Votre participation a bien été enregistrée.'
-  );
-
-  form.reset();
-  emailInput.value = '';
-  bouton.textContent = 'Participation enregistrée';
 }
 
-// Vérification automatique au retour du lien magique
+// Restaurer les réponses dès l'ouverture de la page
+const sauvegardeInitiale = recupererSauvegarde();
+
+if (sauvegardeInitiale) {
+  restaurerReponses(sauvegardeInitiale.reponses);
+}
+
+// Vérifier la session au retour du lien e-mail
 try {
   await enregistrerVote();
 } catch (error) {
   console.error(error);
-  afficherMessage(
-    'Erreur lors de l’enregistrement : ' + error.message
-  );
-  bouton.disabled = false;
-  bouton.textContent = 'Réessayer l’enregistrement';
+  afficherMessage('Erreur de connexion : ' + error.message);
 }
 
-// Gestion du formulaire
+// Détecter aussi une connexion qui arrive après le chargement
+db.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_IN') {
+    setTimeout(() => {
+      enregistrerVote().catch(error => {
+        console.error(error);
+        afficherMessage(
+          'Erreur lors de l’enregistrement : ' + error.message
+        );
+      });
+    }, 0);
+  }
+});
+
+// Gestion de l'envoi du questionnaire
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   bouton.disabled = true;
 
   try {
-    // Si la personne est déjà connectée et a des réponses en attente
-    const sauvegarde = localStorage.getItem(CLE_VOTE);
-    const { data: { session } } = await db.auth.getSession();
-
-    if (session && sauvegarde) {
-      await enregistrerVote();
-      return;
-    }
-
     const email = emailInput.value.trim();
 
     if (!emailInput.checkValidity()) {
@@ -742,25 +798,23 @@ form.addEventListener('submit', async (e) => {
       return;
     }
 
-    // Récupération des réponses
     const reponses = Object.fromEntries(
       new FormData(form).entries()
     );
 
-    // Sauvegarde temporaire sur le navigateur
+    // Sauvegarde des réponses avant l'envoi du lien
     localStorage.setItem(
       CLE_VOTE,
       JSON.stringify({
-        reponses: reponses,
+        reponses,
         date: Date.now()
       })
     );
 
     bouton.textContent = 'Envoi du lien de connexion...';
 
-    // Envoi du lien magique
     const { error } = await db.auth.signInWithOtp({
-      email: email,
+      email,
       options: {
         shouldCreateUser: true,
         emailRedirectTo:
@@ -771,7 +825,7 @@ form.addEventListener('submit', async (e) => {
     if (error) throw error;
 
     afficherMessage(
-      'Un lien de connexion vient de vous être envoyé. Ouvrez votre e-mail et cliquez sur ce lien pour enregistrer votre participation.'
+      'Un lien de connexion vient de vous être envoyé. Ouvrez-le dans le même navigateur que celui utilisé pour remplir le questionnaire.'
     );
 
     bouton.textContent = 'Lien envoyé';
@@ -789,6 +843,7 @@ form.addEventListener('submit', async (e) => {
   }
 });
 </script>
+
 
 
 </body>
