@@ -622,10 +622,11 @@ const db = createClient(
 
 const form = document.getElementById('consultationForm');
 const result = document.getElementById('result');
+const CLE_VOTE = 'horizon2027_vote_en_attente';
 
-let codeEnvoye = false;
+const bouton = form.querySelector('button[type="submit"]');
 
-// Création des champs e-mail et code
+// Création du champ e-mail
 const zoneEmail = document.createElement('div');
 zoneEmail.style.margin = '20px 0';
 
@@ -640,118 +641,151 @@ zoneEmail.innerHTML = `
     required
     style="display:block;width:100%;padding:12px;margin:8px 0;"
   >
-
-  <div id="zoneCode" style="display:none;margin-top:15px;">
-    <label for="codeVote">Code reçu par e-mail</label>
-    <input
-      type="text"
-      id="codeVote"
-      inputmode="numeric"
-      autocomplete="one-time-code"
-      maxlength="6"
-      placeholder="Code à 6 chiffres"
-      style="display:block;width:100%;padding:12px;margin:8px 0;"
-    >
-  </div>
 `;
 
-const bouton = form.querySelector('button[type="submit"]');
 form.insertBefore(zoneEmail, bouton);
 
 const emailInput = document.getElementById('emailVote');
-const codeInput = document.getElementById('codeVote');
-const zoneCode = document.getElementById('zoneCode');
 
+// Affichage des messages
+function afficherMessage(message) {
+  result.style.display = 'block';
+  result.textContent = message;
+}
+
+// Enregistrement après le clic sur le lien magique
+async function enregistrerVote() {
+  const sauvegarde = localStorage.getItem(CLE_VOTE);
+
+  if (!sauvegarde) return;
+
+  const contenu = JSON.parse(sauvegarde);
+
+  // Les réponses expirent après 30 minutes
+  if (Date.now() - contenu.date > 30 * 60 * 1000) {
+    localStorage.removeItem(CLE_VOTE);
+    afficherMessage(
+      'Votre demande a expiré. Merci de remplir à nouveau le questionnaire.'
+    );
+    return;
+  }
+
+  const { data: { session }, error: sessionError } =
+    await db.auth.getSession();
+
+  if (sessionError) throw sessionError;
+
+  if (!session) return;
+
+  bouton.disabled = true;
+  bouton.textContent = 'Enregistrement des réponses...';
+
+  const { data, error } = await db.rpc(
+    'enregistrer_participation',
+    { p_reponses: contenu.reponses }
+  );
+
+  if (error) throw error;
+
+  localStorage.removeItem(CLE_VOTE);
+
+  if (!data.success) {
+    afficherMessage(
+      'Vous avez déjà participé à cette consultation avec ce compte.'
+    );
+    bouton.textContent = 'Participation déjà enregistrée';
+    return;
+  }
+
+  afficherMessage(
+    'Merci ! Votre participation a bien été enregistrée.'
+  );
+
+  form.reset();
+  emailInput.value = '';
+  bouton.textContent = 'Participation enregistrée';
+}
+
+// Vérification automatique au retour du lien magique
+try {
+  await enregistrerVote();
+} catch (error) {
+  console.error(error);
+  afficherMessage(
+    'Erreur lors de l’enregistrement : ' + error.message
+  );
+  bouton.disabled = false;
+  bouton.textContent = 'Réessayer l’enregistrement';
+}
+
+// Gestion du formulaire
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   bouton.disabled = true;
 
   try {
-    const email = emailInput.value.trim();
+    // Si la personne est déjà connectée et a des réponses en attente
+    const sauvegarde = localStorage.getItem(CLE_VOTE);
+    const { data: { session } } = await db.auth.getSession();
 
-    if (!codeEnvoye) {
-      bouton.textContent = 'Envoi du code...';
-
-     const { error } = await db.auth.signInWithOtp({
-  email: email,
-  options: {
-    shouldCreateUser: true,
-    emailRedirectTo: 'https://france-politique-2027.github.io/consultation-horizon-2027/gg.html'
-  }
-});
-
-      if (error) throw error;
-
-      codeEnvoye = true;
-      zoneCode.style.display = 'block';
-
-      result.style.display = 'block';
-      result.textContent =
-        'Un code de confirmation vient de vous être envoyé par e-mail. Consultez votre boîte de réception.';
-
-      bouton.textContent = 'Confirmer le code et participer';
-      bouton.disabled = false;
-
+    if (session && sauvegarde) {
+      await enregistrerVote();
       return;
     }
 
-    bouton.textContent = 'Vérification du code...';
+    const email = emailInput.value.trim();
 
-    const { error: verificationError } =
-      await db.auth.verifyOtp({
-        email: email,
-        token: codeInput.value.trim(),
-        type: 'email'
-      });
+    if (!emailInput.checkValidity()) {
+      emailInput.reportValidity();
+      bouton.disabled = false;
+      return;
+    }
 
-    if (verificationError) throw verificationError;
-
-    bouton.textContent = 'Enregistrement du vote...';
-
-    const answers = Object.fromEntries(
+    // Récupération des réponses
+    const reponses = Object.fromEntries(
       new FormData(form).entries()
     );
 
-    // Ne jamais envoyer l'e-mail avec les réponses
-    delete answers.email;
-    delete answers.code;
-
-    const { data, error } = await db.rpc(
-      'enregistrer_participation',
-      { p_reponses: answers }
+    // Sauvegarde temporaire sur le navigateur
+    localStorage.setItem(
+      CLE_VOTE,
+      JSON.stringify({
+        reponses: reponses,
+        date: Date.now()
+      })
     );
+
+    bouton.textContent = 'Envoi du lien de connexion...';
+
+    // Envoi du lien magique
+    const { error } = await db.auth.signInWithOtp({
+      email: email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo:
+          'https://france-politique-2027.github.io/consultation-horizon-2027/gg.html'
+      }
+    });
 
     if (error) throw error;
 
-    result.style.display = 'block';
+    afficherMessage(
+      'Un lien de connexion vient de vous être envoyé. Ouvrez votre e-mail et cliquez sur ce lien pour enregistrer votre participation.'
+    );
 
-    if (!data.success) {
-      result.textContent =
-        'Vous avez déjà participé à cette consultation avec ce compte.';
-      bouton.textContent = 'Participation déjà enregistrée';
-      return;
-    }
-
-    result.textContent =
-      'Merci ! Votre participation a bien été enregistrée.';
-
-    form.reset();
-    codeEnvoye = false;
-    zoneCode.style.display = 'none';
-    bouton.textContent = 'Participation enregistrée';
+    bouton.textContent = 'Lien envoyé';
+    bouton.disabled = false;
 
   } catch (error) {
     console.error(error);
 
-    result.style.display = 'block';
-    result.textContent =
-      'Une erreur est survenue : ' + error.message;
+    afficherMessage(
+      'Une erreur est survenue : ' + error.message
+    );
 
     bouton.disabled = false;
-    bouton.textContent = codeEnvoye
-      ? 'Confirmer le code et participer'
-      : 'Valider ma participation';
+    bouton.textContent = 'Réessayer';
   }
 });
 </script>
