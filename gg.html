@@ -1,0 +1,757 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consultation citoyenne - Horizon 2027</title>
+
+<style>
+:root {
+  --blue: #002395;
+  --red: #ed2939;
+  --dark: #293548;
+  --bg: #f5f6f9;
+  --muted: #657083;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+  line-height: 1.75;
+}
+
+.cover {
+  min-height: 300px;
+  background: linear-gradient(to right,
+    #002395 33.33%, white 33.33%,
+    white 66.66%, #ed2939 66.66%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.43);
+}
+
+.cover-content {
+  position: relative;
+  color: white;
+  padding: 20px;
+}
+
+.cover h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.2;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.cover p {
+  font-size: 1.05rem;
+  margin-top: 15px;
+}
+
+.container {
+  max-width: 850px;
+  margin: -45px auto 50px;
+  padding: 0 16px;
+  position: relative;
+  z-index: 2;
+}
+
+.card {
+  background: white;
+  padding: 35px;
+  border-radius: 15px;
+  margin-bottom: 25px;
+  box-shadow: 0 7px 25px rgba(0,0,0,.055);
+}
+
+h2 {
+  color: var(--blue);
+  font-size: 1.55rem;
+  line-height: 1.4;
+  margin-top: 0;
+}
+
+h3 {
+  color: var(--blue);
+  font-size: 1.12rem;
+  line-height: 1.5;
+}
+
+p {
+  color: #505c6d;
+  margin-bottom: 16px;
+}
+
+.intro-label {
+  color: var(--red);
+  font-size: .85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pillar {
+  padding: 20px;
+  border-radius: 10px;
+  margin: 18px 0;
+  background: #f7f8fc;
+  border-left: 4px solid var(--blue);
+}
+
+.pillar h3 { margin-top: 0; }
+
+.pillar-number {
+  font-size: .8rem;
+  font-weight: bold;
+  color: var(--red);
+  letter-spacing: 1px;
+}
+
+.example {
+  background: #fff8f1;
+  padding: 18px;
+  border-radius: 10px;
+  border-left: 4px solid #d99a40;
+  margin: 20px 0;
+}
+
+.question {
+  margin: 30px 0;
+}
+
+.question h3 {
+  margin-bottom: 15px;
+}
+
+.option {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 13px;
+  margin: 9px 0;
+  border: 1px solid #e0e4ec;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.option:hover {
+  background: #f2f5ff;
+  border-color: var(--blue);
+}
+
+.option input {
+  margin-top: 7px;
+  accent-color: var(--blue);
+}
+
+textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 15px;
+  font: inherit;
+  border: 1px solid #d5dae4;
+  border-radius: 10px;
+  resize: vertical;
+}
+
+textarea:focus {
+  outline: 2px solid #b7c8ff;
+}
+
+.submit {
+  width: 100%;
+  border: none;
+  background: var(--blue);
+  color: white;
+  padding: 17px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.submit:hover { background: #0037c5; }
+.submit:disabled { opacity: .6; cursor: wait; }
+
+#result {
+  display: none;
+  margin-top: 20px;
+  padding: 18px;
+  background: #e5f5eb;
+  color: #175c32;
+  border-radius: 9px;
+}
+
+.note {
+  font-size: .9rem;
+  color: var(--muted);
+}
+
+.closing {
+  border-top: 2px solid var(--red);
+  padding-top: 20px;
+  margin-top: 25px;
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: #78818f;
+  font-size: .85rem;
+}
+
+@media(max-width:600px) {
+  .card { padding: 23px; }
+  .cover { min-height: 250px; }
+}
+</style>
+</head>
+
+<body>
+
+<header class="cover">
+  <div class="cover-content">
+    <h1>La France en 2027</h1>
+<a href="rtyyy.html" style="
+  display: inline-block;
+  margin-top: 15px;
+  padding: 12px 22px;
+  background: white;
+  color: #002395;
+  text-decoration: none;
+  font-weight: bold;
+  border-radius: 8px;">
+  📊 Consulter les résultats de la consultation
+</a>
+    <p>Une réflexion collective sur notre avenir commun.</p>
+  </div>
+</header>
+
+<main class="container">
+
+<!-- INTRODUCTION -->
+<section class="card">
+
+<span class="intro-label">Une initiative citoyenne</span>
+<h2>Quel avenir voulons-nous pour la France ?</h2>
+
+<p>
+À l'approche de l'élection présidentielle de 2027, j'ai souhaité
+créer cette consultation pour recueillir les avis et les idées
+de chacun.
+</p>
+
+<p>
+On parle souvent de politique à travers les partis, les candidats,
+la gauche, la droite ou le centre. Pourtant, derrière ces
+étiquettes, il y a des questions beaucoup plus importantes :
+dans quelle direction voulons-nous voir notre pays avancer ?
+Et surtout, comment prendre les bonnes décisions sans fragiliser
+ce qui fonctionne déjà ?
+</p>
+
+<p>
+À mes yeux, comprendre l'avenir de la France demande de prendre
+du recul. Un pays ne fonctionne pas avec une seule décision
+ou une seule politique. Tout est lié.
+</p>
+
+<h2>Les trois piliers essentiels</h2>
+
+<p>
+Pour mieux comprendre les enjeux, on peut imaginer la France
+comme un système composé de trois grands ensembles qui
+se croisent et dépendent les uns des autres.
+</p>
+
+<div class="pillar">
+<span class="pillar-number">PREMIER PILIER</span>
+<h3>1. La stabilité intérieure et extérieure</h3>
+
+<p>
+La France est une puissance mondiale. Elle possède des institutions,
+une histoire diplomatique, une armée, des alliances et une place
+importante dans les relations internationales.
+</p>
+
+<p>
+Mais sa puissance dépend aussi de sa stabilité intérieure :
+la confiance dans les institutions, la cohésion de la société,
+la capacité à gérer les crises, les manifestations, les grèves
+et les tensions politiques.
+</p>
+
+<p>
+À l'extérieur, ses relations avec ses alliés, ses partenaires
+et les autres puissances jouent un rôle essentiel. Une relation
+internationale stable peut protéger nos intérêts, tandis qu'une
+crise diplomatique peut avoir des conséquences jusque dans
+la vie quotidienne des Français.
+</p>
+</div>
+
+<div class="pillar">
+<span class="pillar-number">DEUXIÈME PILIER</span>
+<h3>2. L'économie et la puissance économique</h3>
+
+<p>
+La France est un acteur économique important. Son avenir dépend
+de son industrie, de ses entreprises, de ses échanges commerciaux,
+de ses investissements, de sa dette, de son innovation et de
+son indépendance énergétique.
+</p>
+
+<p>
+Prenons un exemple concret : les relations énergétiques avec
+l'Algérie. Les contrats de gaz, de pétrole et les conditions
+d'approvisionnement peuvent avoir une importance stratégique.
+La stabilité des relations avec les partenaires énergétiques
+peut contribuer à sécuriser les approvisionnements et à limiter
+certains risques économiques.
+</p>
+
+<p>
+Cela montre qu'une décision diplomatique peut avoir des
+conséquences économiques, puis sociales.
+</p>
+</div>
+
+<div class="pillar">
+<span class="pillar-number">TROISIÈME PILIER</span>
+<h3>3. La sécurité et les questions migratoires</h3>
+
+<p>
+La sécurité est l'une des premières responsabilités de l'État.
+Elle concerne la protection des citoyens, la justice, la police,
+la défense nationale et la protection des frontières.
+</p>
+
+<p>
+La question migratoire est également complexe. Elle touche
+à l'économie, au marché du travail, à l'intégration, aux services
+publics, à la démographie et aux relations internationales.
+</p>
+
+<p>
+Il est donc important de ne pas traiter ces sujets isolément,
+mais de réfléchir à leurs conséquences sur l'ensemble du pays.
+</p>
+</div>
+
+<h2>Tout est lié : un équilibre à préserver</h2>
+
+<p>
+On peut représenter ces trois piliers comme trois ensembles
+mathématiques qui possèdent des intersections.
+</p>
+
+<p>
+Une décision prise dans un domaine peut modifier les deux autres.
+Par exemple, une tension diplomatique peut perturber les échanges
+énergétiques. Cela peut entraîner une hausse des coûts pour
+les entreprises et les ménages, puis créer des tensions sociales.
+</p>
+
+<div class="example">
+<strong>Un exemple simple :</strong>
+<p>
+Relations internationales → approvisionnement énergétique →
+prix de l'énergie → pouvoir d'achat → stabilité intérieure.
+</p>
+<p>
+C'est cette logique d'interdépendance qui mérite d'être
+prise en compte dans les grandes décisions politiques.
+</p>
+</div>
+
+<p>
+L'objectif n'est pas de privilégier systématiquement un pilier
+au détriment des autres. Il faut comprendre les priorités
+du moment, les risques et les conséquences de chaque choix.
+</p>
+
+<h2>2027 : quel chemin pour la France ?</h2>
+
+<p>
+Plusieurs personnalités politiques pourraient défendre des
+visions différentes du pays, parmi lesquelles Édouard Philippe,
+Marine Le Pen et Jean-Luc Mélenchon.
+</p>
+
+<p>
+Leurs propositions méritent d'être étudiées et comparées.
+Chacun possède sa propre vision de l'État, de l'économie,
+de la souveraineté, de la sécurité et des relations internationales.
+</p>
+
+<p>
+Une grande question se pose alors : devons-nous privilégier
+un changement profond, ou une évolution plus progressive
+et pragmatique ?
+</p>
+
+<p>
+Comment préserver les équilibres fondamentaux tout en faisant
+évoluer le pays ? Faut-il donner plus de poids à la souveraineté,
+à la transformation économique, à la cohésion sociale ou
+à la stabilité internationale ?
+</p>
+
+<h2>Pourquoi votre avis compte</h2>
+
+<p>
+Je ne souhaite pas défendre un candidat ou un parti politique.
+Le but est simplement de comprendre comment chacun voit
+l'avenir de la France.
+</p>
+
+<p>
+Chaque personne possède une expérience, des préoccupations
+et une manière différente d'analyser les problèmes. C'est
+justement cette diversité qui rend une consultation intéressante.
+</p>
+
+<p>
+Je pense que le choix d'un président demande une véritable
+réflexion historique, politique et économique, au-delà
+des sentiments et des préférences personnelles.
+</p>
+
+<p>
+Un pays est toujours plus grand que nos sentiments individuels.
+Nos choix peuvent avoir des conséquences pendant des années.
+Il est donc important de prendre le temps de réfléchir.
+</p>
+
+<div class="closing">
+<strong>Je vous invite à répondre librement et anonymement
+à ce questionnaire.</strong>
+
+<p>
+Exprimez vos idées, vos attentes, vos inquiétudes et les
+changements que vous aimeriez voir. Il n'y a pas de réponse
+attendue : ce qui compte, c'est votre point de vue.
+</p>
+
+<p>
+Vos réponses me seront très utiles pour mieux comprendre
+les différentes visions de la France et les priorités
+que les citoyens souhaitent défendre.
+</p>
+
+<p><strong>Merci sincèrement pour votre participation.</strong></p>
+</div>
+
+</section>
+
+<!-- QUESTIONNAIRE -->
+<section class="card">
+<h2>Votre vision de la France en 2027</h2>
+<p class="note">
+Pour chaque question, choisissez la proposition qui se rapproche
+le plus de votre opinion.
+</p>
+
+<form id="consultationForm">
+
+<div class="question">
+<h3>1. Quelle politique migratoire souhaitez-vous ?</h3>
+<label class="option"><input type="radio" name="immigration" value="Réduire les flux" required> Réduire fortement les flux migratoires.</label>
+<label class="option"><input type="radio" name="immigration" value="Immigration choisie"> Développer une immigration choisie selon les besoins économiques.</label>
+<label class="option"><input type="radio" name="immigration" value="Maintien actuel"> Maintenir globalement la politique actuelle.</label>
+<label class="option"><input type="radio" name="immigration" value="Accueil renforcé"> Renforcer l'accueil et les politiques d'intégration.</label>
+<label class="option"><input type="radio" name="immigration" value="Autre"> Autre orientation.</label>
+</div>
+
+<div class="question">
+<h3>2. Quelle relation avec l'Union européenne ?</h3>
+<label class="option"><input type="radio" name="europe" value="Souveraineté" required> Renforcer fortement la souveraineté nationale.</label>
+<label class="option"><input type="radio" name="europe" value="Europe pragmatique"> Rester dans l'UE tout en négociant davantage de dérogations.</label>
+<label class="option"><input type="radio" name="europe" value="Intégration"> Construire une Europe plus intégrée.</label>
+<label class="option"><input type="radio" name="europe" value="Réforme"> Réformer profondément les institutions européennes.</label>
+<label class="option"><input type="radio" name="europe" value="Sortie"> Envisager une sortie de l'UE.</label>
+</div>
+
+<div class="question">
+<h3>3. Quelle doit être la priorité économique ?</h3>
+<label class="option"><input type="radio" name="economie" value="Pouvoir achat" required> Augmenter le pouvoir d'achat et réduire les taxes.</label>
+<label class="option"><input type="radio" name="economie" value="Industrie"> Relocaliser les industries et soutenir le fabriqué en France.</label>
+<label class="option"><input type="radio" name="economie" value="Entreprises"> Réduire les charges des entreprises et favoriser l'investissement.</label>
+<label class="option"><input type="radio" name="economie" value="Redistribution"> Renforcer la redistribution et les services publics.</label>
+<label class="option"><input type="radio" name="economie" value="Dette"> Réduire les dépenses publiques et la dette.</label>
+<label class="option"><input type="radio" name="economie" value="Innovation"> Investir dans l'innovation et les nouvelles technologies.</label>
+</div>
+
+<div class="question">
+<h3>4. Quelle est votre priorité en matière de sécurité ?</h3>
+<label class="option"><input type="radio" name="securite" value="Police" required> Renforcer les moyens de la police.</label>
+<label class="option"><input type="radio" name="securite" value="Justice"> Renforcer les moyens de la justice.</label>
+<label class="option"><input type="radio" name="securite" value="Prévention"> Investir dans la prévention et l'éducation.</label>
+<label class="option"><input type="radio" name="securite" value="Prisons"> Améliorer les capacités et les conditions carcérales.</label>
+</div>
+
+<div class="question">
+<h3>5. Quel avenir pour le système de santé ?</h3>
+<label class="option"><input type="radio" name="sante" value="Hôpitaux" required> Investir massivement dans les hôpitaux publics.</label>
+<label class="option"><input type="radio" name="sante" value="Personnel"> Recruter davantage de soignants et améliorer leurs conditions de travail.</label>
+<label class="option"><input type="radio" name="sante" value="Accès"> Faciliter l'accès aux médecins dans les zones rurales.</label>
+<label class="option"><input type="radio" name="sante" value="Prévention"> Renforcer la prévention et la médecine de proximité.</label>
+</div>
+
+<div class="question">
+<h3>6. Quelle réforme de l'éducation souhaitez-vous ?</h3>
+<label class="option"><input type="radio" name="education" value="Enseignants" required> Augmenter les moyens et les salaires des enseignants.</label>
+<label class="option"><input type="radio" name="education" value="Niveau"> Relever le niveau scolaire et renforcer les fondamentaux.</label>
+<label class="option"><input type="radio" name="education" value="Orientation"> Améliorer l'orientation et l'insertion professionnelle.</label>
+<label class="option"><input type="radio" name="education" value="Université"> Rendre les études supérieures plus accessibles.</label>
+<label class="option"><input type="radio" name="education" value="Apprentissage"> Développer l'apprentissage et la formation professionnelle.</label>
+</div>
+
+<div class="question">
+<h3>7. Quelle politique du logement privilégier ?</h3>
+<label class="option"><input type="radio" name="logement" value="Construction" required> Construire davantage de logements.</label>
+<label class="option"><input type="radio" name="logement" value="Loyers"> Encadrer davantage les loyers.</label>
+<label class="option"><input type="radio" name="logement" value="Social"> Développer le logement social et étudiant.</label>
+<label class="option"><input type="radio" name="logement" value="Propriété"> Faciliter l'accession à la propriété.</label>
+</div>
+
+<div class="question">
+<h3>8. Quelle orientation fiscale souhaitez-vous ?</h3>
+<label class="option"><input type="radio" name="fiscalite" value="Baisse impôts" required> Réduire les impôts et les prélèvements.</label>
+<label class="option"><input type="radio" name="fiscalite" value="Hauts revenus"> Augmenter la contribution des hauts revenus et patrimoines.</label>
+<label class="option"><input type="radio" name="fiscalite" value="Simplification"> Simplifier le système fiscal.</label>
+<label class="option"><input type="radio" name="fiscalite" value="Stabilité"> Maintenir globalement la fiscalité actuelle.</label>
+</div>
+
+<div class="question">
+<h3>9. Quelle place pour l'environnement ?</h3>
+<label class="option"><input type="radio" name="environnement" value="Nucléaire" required> Développer le nucléaire.</label>
+<label class="option"><input type="radio" name="environnement" value="Renouvelables"> Accélérer les énergies renouvelables.</label>
+<label class="option"><input type="radio" name="environnement" value="Transition"> Accélérer la transition écologique.</label>
+<label class="option"><input type="radio" name="environnement" value="Progressivité"> Privilégier une transition progressive compatible avec le pouvoir d'achat.</label>
+</div>
+
+<div class="question">
+<h3>10. Quelle réforme institutionnelle souhaitez-vous ?</h3>
+<label class="option"><input type="radio" name="institutions" value="Référendum" required> Développer le référendum d'initiative citoyenne.</label>
+<label class="option"><input type="radio" name="institutions" value="Président"> Modifier les pouvoirs du président.</label>
+<label class="option"><input type="radio" name="institutions" value="Parlement"> Renforcer le rôle du Parlement.</label>
+<label class="option"><input type="radio" name="institutions" value="Statu quo"> Conserver les institutions actuelles.</label>
+</div>
+
+<div class="question">
+<h3>11. Quel domaine devrait recevoir le plus d'investissements publics ?</h3>
+<label class="option"><input type="radio" name="investissement" value="Santé" required> Santé.</label>
+<label class="option"><input type="radio" name="investissement" value="Éducation"> Éducation et recherche.</label>
+<label class="option"><input type="radio" name="investissement" value="Sécurité"> Sécurité et justice.</label>
+<label class="option"><input type="radio" name="investissement" value="Industrie"> Industrie et innovation.</label>
+<label class="option"><input type="radio" name="investissement" value="Transport"> Transports et infrastructures.</label>
+<label class="option"><input type="radio" name="investissement" value="Écologie"> Transition écologique.</label>
+</div>
+
+<div class="question">
+<h3>12. Quel équilibre entre les trois piliers ?</h3>
+<p>
+Selon vous, quel domaine doit être renforcé en priorité
+pour assurer l'avenir de la France ?
+</p>
+<label class="option"><input type="radio" name="equilibre" value="Stabilité" required> Stabilité intérieure et extérieure.</label>
+<label class="option"><input type="radio" name="equilibre" value="Économie"> Puissance économique.</label>
+<label class="option"><input type="radio" name="equilibre" value="Sécurité"> Sécurité et maîtrise des questions migratoires.</label>
+<label class="option"><input type="radio" name="equilibre" value="Équilibre"> Préserver un équilibre entre les trois.</label>
+</div>
+
+<div class="question">
+<h3>13. Votre vision personnelle</h3>
+<p>
+Si vous pouviez proposer une réforme au prochain gouvernement,
+quelle serait-elle ? Qu'aimeriez-vous voir changer ?
+</p>
+<textarea name="proposition" placeholder="Prenez le temps d'exprimer vos idées librement..."></textarea>
+</div>
+
+<div class="question">
+<h3>14. Un dernier message aux futurs dirigeants</h3>
+<textarea name="message" placeholder="Que souhaitez-vous leur dire ?"></textarea>
+</div>
+
+<button class="submit" type="submit">
+Valider ma participation
+</button>
+
+<div id="result" role="status"></div>
+
+</form>
+</section>
+
+</main>
+
+<footer>
+Consultation citoyenne indépendante – Horizon 2027<br>
+Participation volontaire – Aucune affiliation officielle à l'État.
+</footer>
+
+
+<script type="module">
+import { createClient } from
+'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const db = createClient(
+  'https://izunivjmrymnybeflnmp.supabase.co',
+  'sb_publishable_Wb03m4xP6ttTy2-tTjMiIg_USPb1qeu'
+);
+
+const form = document.getElementById('consultationForm');
+const result = document.getElementById('result');
+
+let codeEnvoye = false;
+
+// Création des champs e-mail et code
+const zoneEmail = document.createElement('div');
+zoneEmail.style.margin = '20px 0';
+
+zoneEmail.innerHTML = `
+  <label for="emailVote">
+    Votre adresse e-mail pour confirmer votre participation
+  </label>
+  <input
+    type="email"
+    id="emailVote"
+    placeholder="votre@email.com"
+    required
+    style="display:block;width:100%;padding:12px;margin:8px 0;"
+  >
+
+  <div id="zoneCode" style="display:none;margin-top:15px;">
+    <label for="codeVote">Code reçu par e-mail</label>
+    <input
+      type="text"
+      id="codeVote"
+      inputmode="numeric"
+      autocomplete="one-time-code"
+      maxlength="6"
+      placeholder="Code à 6 chiffres"
+      style="display:block;width:100%;padding:12px;margin:8px 0;"
+    >
+  </div>
+`;
+
+const bouton = form.querySelector('button[type="submit"]');
+form.insertBefore(zoneEmail, bouton);
+
+const emailInput = document.getElementById('emailVote');
+const codeInput = document.getElementById('codeVote');
+const zoneCode = document.getElementById('zoneCode');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  bouton.disabled = true;
+
+  try {
+    const email = emailInput.value.trim();
+
+    if (!codeEnvoye) {
+      bouton.textContent = 'Envoi du code...';
+
+     const { error } = await db.auth.signInWithOtp({
+  email: email,
+  options: {
+    shouldCreateUser: true,
+    emailRedirectTo: 'http://localhost:3000/gg.html'
+  }
+});
+
+      if (error) throw error;
+
+      codeEnvoye = true;
+      zoneCode.style.display = 'block';
+
+      result.style.display = 'block';
+      result.textContent =
+        'Un code de confirmation vient de vous être envoyé par e-mail. Consultez votre boîte de réception.';
+
+      bouton.textContent = 'Confirmer le code et participer';
+      bouton.disabled = false;
+
+      return;
+    }
+
+    bouton.textContent = 'Vérification du code...';
+
+    const { error: verificationError } =
+      await db.auth.verifyOtp({
+        email: email,
+        token: codeInput.value.trim(),
+        type: 'email'
+      });
+
+    if (verificationError) throw verificationError;
+
+    bouton.textContent = 'Enregistrement du vote...';
+
+    const answers = Object.fromEntries(
+      new FormData(form).entries()
+    );
+
+    // Ne jamais envoyer l'e-mail avec les réponses
+    delete answers.email;
+    delete answers.code;
+
+    const { data, error } = await db.rpc(
+      'enregistrer_participation',
+      { p_reponses: answers }
+    );
+
+    if (error) throw error;
+
+    result.style.display = 'block';
+
+    if (!data.success) {
+      result.textContent =
+        'Vous avez déjà participé à cette consultation avec ce compte.';
+      bouton.textContent = 'Participation déjà enregistrée';
+      return;
+    }
+
+    result.textContent =
+      'Merci ! Votre participation a bien été enregistrée.';
+
+    form.reset();
+    codeEnvoye = false;
+    zoneCode.style.display = 'none';
+    bouton.textContent = 'Participation enregistrée';
+
+  } catch (error) {
+    console.error(error);
+
+    result.style.display = 'block';
+    result.textContent =
+      'Une erreur est survenue : ' + error.message;
+
+    bouton.disabled = false;
+    bouton.textContent = codeEnvoye
+      ? 'Confirmer le code et participer'
+      : 'Valider ma participation';
+  }
+});
+</script>
+
+
+</body>
+</html>

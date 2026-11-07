@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Résultats – Consultation citoyenne 2027</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f3f5f9;
+  color: #202938;
+}
+
+header {
+  background: linear-gradient(135deg, #002395, #3159ad);
+  color: white;
+  text-align: center;
+  padding: 45px 20px;
+}
+
+header h1 {
+  margin: 0 0 12px;
+  font-size: 2rem;
+}
+
+header p {
+  margin: 0;
+  opacity: .9;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 16px;
+}
+
+.total-card {
+  background: white;
+  padding: 25px;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 3px 14px rgba(0,0,0,.05);
+  margin-bottom: 25px;
+}
+
+.total-number {
+  font-size: 2.7rem;
+  font-weight: bold;
+  color: #002395;
+  margin: 8px 0;
+}
+
+.total-label {
+  color: #667085;
+}
+
+.note {
+  background: #eaf0fb;
+  color: #34445f;
+  padding: 15px;
+  border-radius: 10px;
+  line-height: 1.6;
+  margin-bottom: 25px;
+  font-size: .92rem;
+}
+
+.question-card {
+  background: white;
+  border-radius: 14px;
+  padding: 25px;
+  margin-bottom: 22px;
+  box-shadow: 0 3px 14px rgba(0,0,0,.05);
+}
+
+.question-card h2 {
+  color: #002395;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  margin: 0 0 22px;
+}
+
+.option {
+  margin-bottom: 22px;
+}
+
+.option:last-child {
+  margin-bottom: 0;
+}
+
+.option-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 9px;
+}
+
+.option-label {
+  font-weight: 500;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.option-stats {
+  color: #667085;
+  font-size: .88rem;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.bar-background {
+  width: 100%;
+  height: 12px;
+  background: #e9edf3;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  background: #3159ad;
+  border-radius: 20px;
+  transition: width .5s ease;
+}
+
+.hidden-data {
+  color: #8a5a00;
+  font-size: .85rem;
+  margin-top: 8px;
+}
+
+.refresh-info {
+  text-align: center;
+  color: #78818f;
+  font-size: .85rem;
+  margin: 25px 0;
+}
+
+.error {
+  background: #fff0f0;
+  color: #a32626;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: none;
+}
+
+footer {
+  text-align: center;
+  padding: 25px;
+  color: #78818f;
+  font-size: .85rem;
+}
+
+@media(max-width:600px) {
+  header h1 {
+    font-size: 1.6rem;
+  }
+
+  .question-card {
+    padding: 19px;
+  }
+
+  .option-top {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .option-stats {
+    text-align: left;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Résultats de la consultation</h1>
+  <p>La France en 2027 – Les réponses des participants</p>
+</header>
+
+<main class="container">
+
+  <section class="total-card">
+    <div class="total-label">Nombre total de participants</div>
+    <div class="total-number" id="totalParticipants">—</div>
+    <div class="total-label">Participations enregistrées</div>
+  </section>
+
+  <div class="note">
+    Les résultats sont actualisés automatiquement.
+    Toutes les propositions du questionnaire sont affichées,
+    y compris celles qui n'ont reçu aucun vote.
+    Pour protéger la confidentialité, les résultats des propositions
+    ayant reçu moins de 5 votes sont masqués.
+    Les pourcentages sont calculés uniquement à partir des votes
+    qui peuvent être affichés.
+  </div>
+
+  <div class="error" id="errorMessage"></div>
+
+  <div id="results">
+    <p style="text-align:center;color:#667085;">
+      Chargement des résultats...
+    </p>
+  </div>
+
+  <div class="refresh-info" id="refreshInfo">
+    Actualisation automatique toutes les 60 secondes.
+  </div>
+
+</main>
+
+<footer>
+  Consultation citoyenne indépendante – Horizon 2027<br>
+  Participation volontaire – Aucune affiliation officielle à l'État.
+</footer>
+
+<script type="module">
+import { createClient } from
+'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL =
+'https://izunivjmrymnybeflnmp.supabase.co';
+
+const SUPABASE_KEY =
+'sb_publishable_Wb03m4xP6ttTy2-tTjMiIg_USPb1qeu';
+
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+
+// Questions et propositions exactement comme dans le formulaire
+
+const questions = [
+  {
+    key: 'immigration',
+    title: '1. Quelle politique migratoire souhaitez-vous ?',
+    options: [
+      ['Réduire les flux', 'Réduire fortement les flux migratoires.'],
+      ['Immigration choisie', 'Développer une immigration choisie selon les besoins économiques.'],
+      ['Maintien actuel', 'Maintenir globalement la politique actuelle.'],
+      ['Accueil renforcé', "Renforcer l'accueil et les politiques d'intégration."],
+      ['Autre', 'Autre orientation.']
+    ]
+  },
+  {
+    key: 'europe',
+    title: "2. Quelle relation avec l'Union européenne ?",
+    options: [
+      ['Souveraineté', 'Renforcer fortement la souveraineté nationale.'],
+      ['Europe pragmatique', "Rester dans l'UE tout en négociant davantage de dérogations."],
+      ['Intégration', 'Construire une Europe plus intégrée.'],
+      ['Réforme', 'Réformer profondément les institutions européennes.'],
+      ['Sortie', "Envisager une sortie de l'UE."]
+    ]
+  },
+  {
+    key: 'economie',
+    title: '3. Quelle doit être la priorité économique ?',
+    options: [
+      ['Pouvoir achat', 'Augmenter le pouvoir d’achat et réduire les taxes.'],
+      ['Industrie', 'Relocaliser les industries et soutenir le fabriqué en France.'],
+      ['Entreprises', "Réduire les charges des entreprises et favoriser l'investissement."],
+      ['Redistribution', 'Renforcer la redistribution et les services publics.'],
+      ['Dette', 'Réduire les dépenses publiques et la dette.'],
+      ['Innovation', "Investir dans l'innovation et les nouvelles technologies."]
+    ]
+  },
+  {
+    key: 'securite',
+    title: '4. Quelle est votre priorité en matière de sécurité ?',
+    options: [
+      ['Police', 'Renforcer les moyens de la police.'],
+      ['Justice', 'Renforcer les moyens de la justice.'],
+      ['Prévention', "Investir dans la prévention et l'éducation."],
+      ['Prisons', 'Améliorer les capacités et les conditions carcérales.']
+    ]
+  },
+  {
+    key: 'sante',
+    title: '5. Quel avenir pour le système de santé ?',
+    options: [
+      ['Hôpitaux', 'Investir massivement dans les hôpitaux publics.'],
+      ['Personnel', 'Recruter davantage de soignants et améliorer leurs conditions de travail.'],
+      ['Accès', 'Faciliter l’accès aux médecins dans les zones rurales.'],
+      ['Prévention', 'Renforcer la prévention et la médecine de proximité.']
+    ]
+  },
+  {
+    key: 'education',
+    title: '6. Quelle réforme de l’éducation souhaitez-vous ?',
+    options: [
+      ['Enseignants', 'Augmenter les moyens et les salaires des enseignants.'],
+      ['Niveau', 'Relever le niveau scolaire et renforcer les fondamentaux.'],
+      ['Orientation', "Améliorer l'orientation et l'insertion professionnelle."],
+      ['Université', 'Rendre les études supérieures plus accessibles.'],
+      ['Apprentissage', "Développer l'apprentissage et la formation professionnelle."]
+    ]
+  },
+  {
+    key: 'logement',
+    title: '7. Quelle politique du logement privilégier ?',
+    options: [
+      ['Construction', 'Construire davantage de logements.'],
+      ['Loyers', 'Encadrer davantage les loyers.'],
+      ['Social', 'Développer le logement social et étudiant.'],
+      ['Propriété', "Faciliter l'accession à la propriété."]
+    ]
+  },
+  {
+    key: 'fiscalite',
+    title: '8. Quelle orientation fiscale souhaitez-vous ?',
+    options: [
+      ['Baisse impôts', 'Réduire les impôts et les prélèvements.'],
+      ['Hauts revenus', 'Augmenter la contribution des hauts revenus et patrimoines.'],
+      ['Simplification', 'Simplifier le système fiscal.'],
+      ['Stabilité', 'Maintenir globalement la fiscalité actuelle.']
+    ]
+  },
+  {
+    key: 'environnement',
+    title: "9. Quelle place pour l'environnement ?",
+    options: [
+      ['Nucléaire', 'Développer le nucléaire.'],
+      ['Renouvelables', 'Accélérer les énergies renouvelables.'],
+      ['Transition', 'Accélérer la transition écologique.'],
+      ['Progressivité', 'Privilégier une transition progressive compatible avec le pouvoir d’achat.']
+    ]
+  },
+  {
+    key: 'institutions',
+    title: '10. Quelle réforme institutionnelle souhaitez-vous ?',
+    options: [
+      ['Référendum', "Développer le référendum d'initiative citoyenne."],
+      ['Président', 'Modifier les pouvoirs du président.'],
+      ['Parlement', 'Renforcer le rôle du Parlement.'],
+      ['Statu quo', 'Conserver les institutions actuelles.']
+    ]
+  },
+  {
+    key: 'investissement',
+    title: '11. Quel domaine devrait recevoir le plus d’investissements publics ?',
+    options: [
+      ['Santé', 'Santé.'],
+      ['Éducation', 'Éducation et recherche.'],
+      ['Sécurité', 'Sécurité et justice.'],
+      ['Industrie', 'Industrie et innovation.'],
+      ['Transport', 'Transports et infrastructures.'],
+      ['Écologie', 'Transition écologique.']
+    ]
+  },
+  {
+    key: 'equilibre',
+    title: '12. Quel équilibre entre les trois piliers ?',
+    options: [
+      ['Stabilité', 'Stabilité intérieure et extérieure.'],
+      ['Économie', 'Puissance économique.'],
+      ['Sécurité', 'Sécurité et maîtrise des questions migratoires.'],
+      ['Équilibre', 'Préserver un équilibre entre les trois.']
+    ]
+  }
+];
+
+
+function afficherQuestion(question, donnees) {
+  const categories = donnees?.[question.key]?.categories || [];
+
+  const categoriesMap = new Map(
+    categories.map(item => [item.reponse, item])
+  );
+
+  // Les votes masqués ne sont pas utilisés dans le calcul du pourcentage.
+  const totalVisible = question.options.reduce((total, option) => {
+    const item = categoriesMap.get(option[0]);
+
+    if (!item || item.masque) return total;
+
+    return total + (Number(item.nombre) || 0);
+  }, 0);
+
+  const card = document.createElement('section');
+  card.className = 'question-card';
+
+  const heading = document.createElement('h2');
+  heading.textContent = question.title;
+  card.appendChild(heading);
+
+  question.options.forEach(([value, label]) => {
+    const item = categoriesMap.get(value);
+    const option = document.createElement('div');
+    option.className = 'option';
+
+    const top = document.createElement('div');
+    top.className = 'option-top';
+
+    const labelElement = document.createElement('div');
+    labelElement.className = 'option-label';
+    labelElement.textContent = label;
+
+    const stats = document.createElement('div');
+    stats.className = 'option-stats';
+
+    const barBackground = document.createElement('div');
+    barBackground.className = 'bar-background';
+
+    const barFill = document.createElement('div');
+    barFill.className = 'bar-fill';
+
+    if (item?.masque) {
+      stats.textContent = 'Résultat masqué';
+
+      const hidden = document.createElement('div');
+      hidden.className = 'hidden-data';
+      hidden.textContent = 'Données masquées : moins de 5 votes.';
+
+      barBackground.appendChild(barFill);
+      top.append(labelElement, stats);
+      option.append(top, barBackground, hidden);
+    } else {
+      const nombre = item ? Number(item.nombre) || 0 : 0;
+      const pourcentage = totalVisible > 0
+        ? (nombre / totalVisible) * 100
+        : 0;
+
+      stats.textContent =
+        `${nombre} vote${nombre > 1 ? 's' : ''} · ${pourcentage.toFixed(1)} %`;
+
+      barFill.style.width = `${pourcentage}%`;
+
+      barBackground.appendChild(barFill);
+      top.append(labelElement, stats);
+      option.append(top, barBackground);
+    }
+
+    card.appendChild(option);
+  });
+
+  return card;
+}
+
+
+async function afficherResultats() {
+  const errorElement = document.getElementById('errorMessage');
+  const resultsElement = document.getElementById('results');
+
+  try {
+    const { data, error } = await db.rpc('statistiques_publiques');
+
+    if (error) throw error;
+
+    if (!data) {
+      throw new Error('Aucune donnée reçue.');
+    }
+
+    document.getElementById('totalParticipants').textContent =
+      Number(data.total || 0).toLocaleString('fr-FR');
+
+    resultsElement.replaceChildren();
+
+    questions.forEach(question => {
+      resultsElement.appendChild(
+        afficherQuestion(question, data)
+      );
+    });
+
+    errorElement.style.display = 'none';
+
+    document.getElementById('refreshInfo').textContent =
+      'Résultats actualisés automatiquement toutes les 60 secondes.';
+
+  } catch (error) {
+    console.error('Erreur de chargement :', error);
+
+    errorElement.textContent =
+      "Impossible de charger les résultats. Vérifie la connexion à Supabase et la fonction statistiques_publiques().";
+
+    errorElement.style.display = 'block';
+  }
+}
+
+afficherResultats();
+
+setInterval(afficherResultats, 60000);
+</script>
+
+</body>
+</html>
