@@ -225,6 +225,82 @@ footer {
   .cover { min-height: 250px; }
 }
 </style>
+  <style>
+.marseillaise {
+  margin: 25px auto;
+  padding: 25px 20px;
+  max-width: 520px;
+  border-radius: 20px;
+  color: white;
+  background: linear-gradient(135deg, #06142e, #173b70, #06142e);
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.25);
+}
+
+.marseillaise .drapeau {
+  font-size: 48px;
+  animation: drapeau 2s ease-in-out infinite;
+}
+
+.marseillaise h2 {
+  margin: 8px 0;
+  font-size: 24px;
+}
+
+.marseillaise p {
+  color: #dce8ff;
+}
+
+.marseillaise .ondes {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  height: 65px;
+  margin: 15px 0;
+}
+
+.marseillaise .ondes span {
+  width: 7px;
+  height: 12px;
+  border-radius: 8px;
+  background: linear-gradient(to top, #2458ff, white, #ef3340);
+}
+
+.marseillaise.playing .ondes span {
+  animation: musique .7s ease-in-out infinite alternate;
+}
+
+.marseillaise.playing .ondes span:nth-child(2n) {
+  animation-delay: .2s;
+}
+
+.marseillaise.playing .ondes span:nth-child(3n) {
+  animation-delay: .4s;
+}
+
+.marseillaise audio {
+  width: 100%;
+  max-width: 420px;
+}
+
+.marseillaise .signature {
+  margin-top: 15px;
+  font-size: 12px;
+  letter-spacing: 2px;
+}
+
+@keyframes musique {
+  from { height: 10px; }
+  to { height: 58px; }
+}
+
+@keyframes drapeau {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+</style>
+
 </head>
 
 <body>
@@ -232,12 +308,43 @@ footer {
 <header class="cover">
   <div class="cover-content">
     <h1>La France en 2027</h1>
-    <div style="margin-top:20px;">
-  <p>🇫🇷 Écouter La Marseillaise</p>
+    
+<div class="marseillaise">
+  <div class="drapeau">🇫🇷</div>
+  <h2>La Marseillaise</h2>
+  <p>L'hymne national de la République française</p>
+
+  <div class="ondes">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+  </div>
+
   <audio controls preload="metadata">
     <source src="2586_La_Marseillaise.ogg" type="audio/ogg">
   </audio>
+
+  <div class="signature">LIBERTÉ • ÉGALITÉ • FRATERNITÉ</div>
 </div>
+
+<script>
+const lecteur = document.querySelector('.marseillaise');
+const audio = lecteur.querySelector('audio');
+
+audio.addEventListener('play', () => {
+  lecteur.classList.add('playing');
+});
+
+audio.addEventListener('pause', () => {
+  lecteur.classList.remove('playing');
+});
+
+audio.addEventListener('ended', () => {
+  lecteur.classList.remove('playing');
+});
+</script>
 <a href="rtyyy.html" style="
   display: inline-block;
   margin-top: 15px;
