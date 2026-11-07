@@ -650,12 +650,16 @@ function obtenirIdentifiant() {
 
 // Vérifier si ce navigateur a déjà participé
 if (localStorage.getItem(CLE_VOTE) === 'oui') {
-  afficherMessage(
-    'Une participation a déjà été enregistrée depuis ce navigateur.',
-    true
-  );
-  bouton.disabled = true;
-  bouton.textContent = 'Participation déjà enregistrée';
+    afficherMessage(
+      'Merci ! Votre participation a bien été enregistrée. Redirection vers les résultats...',
+      true
+    );
+
+    bouton.textContent = 'Participation enregistrée';
+
+    setTimeout(() => {
+      window.location.href = 'rtyyy.html';
+    }, 2000);
 }
 
 // Envoi du questionnaire
