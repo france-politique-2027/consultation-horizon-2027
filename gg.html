@@ -612,6 +612,7 @@ Participation volontaire – Aucune affiliation officielle à l'État.
 
 
 
+
 <script type="module">
 import { createClient } from
 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -623,213 +624,94 @@ const db = createClient(
 
 const form = document.getElementById('consultationForm');
 const result = document.getElementById('result');
-const CLE_VOTE = 'horizon2027_vote_en_attente';
 const bouton = form.querySelector('button[type="submit"]');
 
-let enregistrementEnCours = false;
+const CLE_APPAREIL = 'horizon2027_device_id';
+const CLE_VOTE = 'horizon2027_vote_enregistre';
 
-// Création du champ e-mail
-const zoneEmail = document.createElement('div');
-zoneEmail.style.margin = '20px 0';
-zoneEmail.innerHTML = `
-  <label for="emailVote">
-    Votre adresse e-mail pour confirmer votre participation
-  </label>
-  <input
-    type="email"
-    id="emailVote"
-    placeholder="votre@email.com"
-    required
-    style="display:block;width:100%;padding:12px;margin:8px 0;"
-  >
-`;
-
-form.insertBefore(zoneEmail, bouton);
-const emailInput = document.getElementById('emailVote');
-
-function afficherMessage(message) {
+function afficherMessage(message, succes = false) {
   result.style.display = 'block';
+  result.style.background = succes ? '#e5f5eb' : '#fff0f0';
+  result.style.color = succes ? '#175c32' : '#8b2020';
   result.textContent = message;
 }
 
-// Restaurer les réponses dans le questionnaire
-function restaurerReponses(reponses) {
-  for (const [nom, valeur] of Object.entries(reponses)) {
-    const champ = form.elements.namedItem(nom);
+// Identifiant aléatoire conservé dans le navigateur
+function obtenirIdentifiant() {
+  let identifiant = localStorage.getItem(CLE_APPAREIL);
 
-    if (!champ) continue;
-
-    if (champ instanceof RadioNodeList) {
-      for (const radio of champ) {
-        radio.checked = radio.value === valeur;
-      }
-    } else {
-      champ.value = valeur;
-    }
+  if (!identifiant) {
+    identifiant = crypto.randomUUID();
+    localStorage.setItem(CLE_APPAREIL, identifiant);
   }
+
+  return identifiant;
 }
 
-// Récupérer les réponses sauvegardées
-function recupererSauvegarde() {
-  const sauvegarde = localStorage.getItem(CLE_VOTE);
-
-  if (!sauvegarde) return null;
-
-  try {
-    const contenu = JSON.parse(sauvegarde);
-
-    if (
-      !contenu.date ||
-      !contenu.reponses ||
-      Date.now() - contenu.date > 30 * 60 * 1000
-    ) {
-      localStorage.removeItem(CLE_VOTE);
-      return null;
-    }
-
-    return contenu;
-  } catch {
-    localStorage.removeItem(CLE_VOTE);
-    return null;
-  }
+// Vérifier si ce navigateur a déjà participé
+if (localStorage.getItem(CLE_VOTE) === 'oui') {
+  afficherMessage(
+    'Une participation a déjà été enregistrée depuis ce navigateur.',
+    true
+  );
+  bouton.disabled = true;
+  bouton.textContent = 'Participation déjà enregistrée';
 }
 
-// Enregistrer les réponses après connexion
-async function enregistrerVote() {
-  if (enregistrementEnCours) return;
+// Envoi du questionnaire
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-  const contenu = recupererSauvegarde();
+  if (!form.reportValidity()) return;
 
-  if (!contenu) {
+  if (localStorage.getItem(CLE_VOTE) === 'oui') {
     afficherMessage(
-      'Aucune réponse en attente n’a été retrouvée dans ce navigateur. Il faut recommencer le questionnaire.'
+      'Vous avez déjà participé depuis ce navigateur.',
+      true
     );
     return;
   }
 
-  const { data: { session }, error: sessionError } =
-    await db.auth.getSession();
-
-  if (sessionError) throw sessionError;
-  if (!session) return;
-
-  enregistrementEnCours = true;
   bouton.disabled = true;
-  bouton.textContent = 'Enregistrement des réponses...';
+  bouton.textContent = 'Enregistrement en cours...';
 
   try {
-    const { data, error } = await db.rpc(
-      'enregistrer_participation',
-      { p_reponses: contenu.reponses }
-    );
-
-    if (error) throw error;
-
-    localStorage.removeItem(CLE_VOTE);
-
-    if (!data || data.success !== true) {
-      afficherMessage(
-        'Vous avez déjà participé à cette consultation avec ce compte.'
-      );
-      bouton.textContent = 'Participation déjà enregistrée';
-      return;
-    }
-
-    afficherMessage(
-      'Merci ! Votre participation a bien été enregistrée.'
-    );
-
-    // On conserve les réponses visibles dans le formulaire.
-    bouton.textContent = 'Participation enregistrée';
-
-  } catch (error) {
-    console.error(error);
-    afficherMessage(
-      'Erreur lors de l’enregistrement : ' + error.message
-    );
-    bouton.disabled = false;
-    bouton.textContent = 'Réessayer l’enregistrement';
-  } finally {
-    enregistrementEnCours = false;
-  }
-}
-
-// Restaurer les réponses dès l'ouverture de la page
-const sauvegardeInitiale = recupererSauvegarde();
-
-if (sauvegardeInitiale) {
-  restaurerReponses(sauvegardeInitiale.reponses);
-}
-
-// Vérifier la session au retour du lien e-mail
-try {
-  await enregistrerVote();
-} catch (error) {
-  console.error(error);
-  afficherMessage('Erreur de connexion : ' + error.message);
-}
-
-// Détecter aussi une connexion qui arrive après le chargement
-db.auth.onAuthStateChange((event) => {
-  if (event === 'SIGNED_IN') {
-    setTimeout(() => {
-      enregistrerVote().catch(error => {
-        console.error(error);
-        afficherMessage(
-          'Erreur lors de l’enregistrement : ' + error.message
-        );
-      });
-    }, 0);
-  }
-});
-
-// Gestion de l'envoi du questionnaire
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  bouton.disabled = true;
-
-  try {
-    const email = emailInput.value.trim();
-
-    if (!emailInput.checkValidity()) {
-      emailInput.reportValidity();
-      bouton.disabled = false;
-      return;
-    }
+    const identifiant = obtenirIdentifiant();
 
     const reponses = Object.fromEntries(
       new FormData(form).entries()
     );
 
-    // Sauvegarde des réponses avant l'envoi du lien
-    localStorage.setItem(
-      CLE_VOTE,
-      JSON.stringify({
-        reponses,
-        date: Date.now()
-      })
-    );
-
-    bouton.textContent = 'Envoi du lien de connexion...';
-
-    const { error } = await db.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-        emailRedirectTo:
-          'https://france-politique-2027.github.io/consultation-horizon-2027/gg.html'
+    const { data, error } = await db.rpc(
+      'enregistrer_participation_appareil',
+      {
+        p_device_id: identifiant,
+        p_reponses: reponses
       }
-    });
+    );
 
     if (error) throw error;
 
+    if (!data || data.success !== true) {
+      localStorage.setItem(CLE_VOTE, 'oui');
+
+      afficherMessage(
+        'Une participation a déjà été enregistrée depuis ce navigateur.',
+        true
+      );
+
+      bouton.textContent = 'Participation déjà enregistrée';
+      return;
+    }
+
+    localStorage.setItem(CLE_VOTE, 'oui');
+
     afficherMessage(
-      'Un lien de connexion vient de vous être envoyé. Ouvrez-le dans le même navigateur que celui utilisé pour remplir le questionnaire.'
+      'Merci ! Votre participation a bien été enregistrée.',
+      true
     );
 
-    bouton.textContent = 'Lien envoyé';
-    bouton.disabled = false;
+    bouton.textContent = 'Participation enregistrée';
 
   } catch (error) {
     console.error(error);
